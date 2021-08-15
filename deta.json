@@ -1,0 +1,12 @@
+{
+    "name": "Tiiny",
+    "description": "Shorten your long URLs in just a click", 
+    "env": [
+        {
+            "key": "DOMAIN_NAME",
+            "description": "Domain name of the website, leave blank if want to use default domain provided by Deta",
+            "value": "tiiny.deta.dev",
+            "required": false 
+        }
+    ]
+}

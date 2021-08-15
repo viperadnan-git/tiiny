@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tiiny - URL Shortener</title>
+    <meta name="author" content="Adnan Ahmad">
+    <meta name="description" content="Shorten long URLs in just a click.">
+    <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon/favicon-16x16.png">
+    <link rel="manifest" href="/static/favicon/site.webmanifest">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/static/js.cookie.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&display=swap');
+        body {
+            font-family: 'Josefin Sans', sans-serif;
+        }
+        #key-box-label {
+            clear: both;
+            float: left;
+            margin-right: 2px;
+        }
+        #key-box {
+            width: 100px;
+            max-width: 100%;
+            height: 17px;
+            padding-left: 1px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <section class="hero theme-color is-fullheight">
+        <!-- Hero head: will stick at the top -->
+        <div class="hero-head">
+            <nav class="navbar">
+                <div class="container">
+                    <div class="navbar-brand">
+                        <a class="navbar-item has-text-weight-bold" href="/">
+                            TIINY
+                        </a>
+                        <span class="navbar-burger" data-target="navbarMenuHeroA">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </span>
+                    </div>
+                    <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-end">
+                            <div class="navbar-item">
+                                <span id="theme-menu">Night &#x1F31A;</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="hero-body">
+            <div class="container">
+                <div class="has-text-centered">
+                    <p class="title">
+                        URL Shortener
+                    </p>
+                    <p class="subtitle">
+                        Shorten your long URLs in just a click.
+                        <br><span class="is-size-7">
+                            Free • Fast • Personalized
+                        </span>
+                    </p>
+                </div>
+                <div id="main" class="mt-5">
+                    <form id="shortner">
+                        <div class="columns is-desktop">
+                            <div class="column is-full">
+                                <div class="field">
+                                    <div class="control">
+                                        <input id="url-box" class="input is-primary" type="url" placeholder="https://www.google.com/search?q=viperadnan" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="columns is-desktop">
+                            <div class="column is-four-fifths">
+                                <div class="field">
+                                    <div class="control">
+                                        <label for="key-box" id="key-box-label">https://tiiny.tk/</label>
+                                        <input class="input" type="text theme-color" id="key-box">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="column">
+                                <div class="field">
+                                    <div class="control">
+                                        <button id="submit-button" class="button is-primary is-fullwidth is-uppercase has-text-weight-bold" type="submit">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div id="alert-modal" class="modal" onclick="$(this).removeClass('is-active')">
+                    <div class="modal-background"></div>
+                    <div class="modal-content">
+                        <div class="container is-fluid">
+                            <div id="alert-message" class="notification is-danger">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <button class="modal-close is-large" aria-label="close"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+        <div class="content has-text-centered">
+            <p class="is-size-7">
+                <strong>Tiiny</strong> by <a href="https://viperadnan-git.github.io">Adnan Ahmad</a>.<br>The source code is licensed
+                <a href="http://opensource.org/licenses/mit-license.php">MIT</a>.<br>
+
+            </p>
+        </div>
+    </footer>
+    <script>
+        $(document).ready(function() {
+            var themeElements = $('.theme-color')
+            var themeMenu = $('#theme-menu')
+            var currentTheme = Cookies.get('theme') || 'is-white';
+            var themeOptions = {
+                'is-white': "Night &#x1F31A;",
+                'is-dark': "Light &#x2600;&#xFE0F;"
+            }
+            themeElements.addClass(currentTheme)
+            themeMenu.html(themeOptions[currentTheme])
+            themeMenu.click(function() {
+                let selectedTheme = $(this).text()
+                if (selectedTheme.toLowerCase().includes('night')) {
+                    selectedTheme = 'is-dark'
+                } else {
+                    selectedTheme = 'is-white'
+                }
+                themeElements.toggleClass(currentTheme)
+                currentTheme = selectedTheme
+                Cookies.set('theme', currentTheme, {
+                    expires: 365
+                });
+                themeElements.addClass(selectedTheme)
+                themeMenu.html(themeOptions[currentTheme])
+            });
+
+            const url_prefix = $('#key-box-label').text();
+            $('#shortner').submit((event) => {
+                event.preventDefault();
+                var settings = {
+                    "url": "/api",
+                    "method": "POST",
+                    "data": JSON.stringify({
+                        "url": $('#url-box').val(),
+                        "key": $('#key-box').val() ? $('#key-box').val(): null
+                    }),
+                    "timeout": 0,
+                    "headers": {
+                        "Content-Type": "application/json"
+                    }
+                };
+                $('#submit-button').addClass('is-loading');
+                $.ajax(settings)
+                .done((response) => {
+                    $('#main').html(`
+                        <div class="columns is-desktop">
+                        <div class="column is-four-fifths">
+                        <input id="shortened-url" type="text" class="input is-success" value="${url_prefix}${response}" readonly>
+                        </div>
+                        <div class="column">
+                        <button id="copy-button" onclick="copy_url()" class="button is-success has-text-weight-bold is-fullwidth is-uppercase">Copy</button>
+                        </div>
+                        </div>
+                        <div class="has-text-centered">
+                        <a class="is-size-7" onclick="window.location.reload()">Shorten another URL</a>
+                        </div>
+                        `);
+                })
+                .fail((xhr, status, error) => {
+                    errorAlert(xhr.responseText);
+                    $("#submit-button").removeClass("is-loading");
+                });
+            });
+            $(".navbar-burger").click(function() {
+                $(".navbar-burger, .navbar-menu").toggleClass("is-active");
+            });
+            function errorAlert(text) {
+                $('#alert-message').text(text);
+                $('#alert-modal').addClass('is-active');
+            }
+        });
+        function copy_url() {
+            var copyText = document.getElementById("shortened-url");
+            copyText.select();
+            copyText.setSelectionRange(0,
+                99999);
+            document.execCommand("copy");
+            $("#copy-button").text("Copied")
+        }
+    </script>
+</body>
+</html>

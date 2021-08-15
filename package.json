@@ -1,0 +1,31 @@
+{
+  "name": "tiiny",
+  "version": "0.1.0",
+  "description": "Shorten your long URLs in just a click",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viperadnan-git/tiiny.git"
+  },
+  "keywords": [
+    "url",
+    "url-shortner",
+    "tiiny",
+    "shortner",
+    "deta"
+  ],
+  "author": "Adnan Ahmad",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/viperadnan-git/tiiny/issues"
+  },
+  "homepage": "https://github.com/viperadnan-git/tiiny#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.10",
+    "deta": "^1.0.0",
+    "express": "^4.17.1"
+  }
+}
