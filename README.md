@@ -7,7 +7,7 @@
 
 <br>
 
-[![Deploy](https://button.deta.dev/1/svg)](https://go.deta.dev/deploy)
+[![Deploy](https://button.deta.dev/1/svg)](https://go.deta.dev/deploy?repo=https://github.com/viperadnan-git/tiiny)
 
 ## Deploy
 - Edit `index.js` to listen to app.
