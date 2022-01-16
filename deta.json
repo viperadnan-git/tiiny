@@ -7,6 +7,24 @@
             "description": "Domain name of the website, leave blank if want to use default domain provided by Deta",
             "value": "tiiny.deta.dev",
             "required": false 
+        },
+        {
+            "key": "WEBSITE_NAME",
+            "description": "Your website name, default to \"Tiiny\"",
+            "value": "TIINY",
+            "required": false
+        },
+        {
+            "key": "BINARY_CONTENT_TYPES",
+            "description": "This should be (*) to serve types of static files.",
+            "value": "*",
+            "required": true
+        },
+        {
+            "key": "DEFAULT_KEY_LENGTH",
+            "description": "Length of the default key, default to 8",
+            "value": "8",
+            "required": false
         }
     ]
 }

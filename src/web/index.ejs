@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>
+        <%- website_name %>
+    </title>
+    <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/static/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/static/img/favicons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/static/img/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="180x180" href="/static/img/favicons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/static/img/favicons/android-chrome-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/static/img/favicons/android-chrome-512x512.png">
+    <link rel="stylesheet" href="/static/bootstrap/css/<% if (mode == 'dark') { %>dark-<% } %>bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Josefin+Sans&amp;display=swap">
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+
+<body class="<% if (mode == 'dark') { %>dark-body<% } else { %>light-body<% } %>">
+    <div class="container d-flex align-items-center" style="min-height: 100vh;">
+        <div class="row">
+            <div class="col offset-md-0">
+                <div class="container">
+                    <div><img src="/static/img/logo.png" style="width: 195px;margin-bottom: 10px;"><img id="mode"
+                            src="/static/img/dark-mode-icon.svg" style="width: 30px;margin-bottom: 40px;">
+                        <h1 class="fw-bolder">A simple link but a powerful tool <br />for <span id="typewriter"
+                                class="h1 text-danger fw-bolder" style="display: inline;">programmer.</span></h1>
+                        <p><strong>
+                                <%- website_name %>
+                            </strong>is a URL shortener that allows you to minify your long links -
+                            absolutely free and fast.</p>
+                    </div>
+                    <form id="form">
+                        <div class="row" style="margin-bottom: 14px;">
+                            <div class="col"><input class="form-control" type="url" placeholder="Enter URL"
+                                    required="true"></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-8" style="align-items: center;display: flex;"><span
+                                    class="fw-bold">http://<%- website_domain %>/</span><input class="form-control"
+                                    type="text" style="display: inline;width: auto;padding: 0 0 0 3px;height: 20px;">
+                            </div>
+                            <div class="text-end col-sm-4" style="margin-top: 14px;">
+                                <div class="d-grid"><button class="btn btn-primary" type="submit">Make it Tiiny</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="showcase" class="d-grid gap-4 text-center d-none" stylse="display: none !important;">
+                        <input type="url" class="form-control" readonly>
+                        <button class="btn btn-primary" type="button" onclick="copy_url()">Copy</button>
+                        <a onclick="reset()">Shorten another URL</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer class="my-5">
+        <h6 class="d-flex gap-3 small justify-content-center"><a class="text-decoration-none"
+                href="https://github.com/viperadnan-git/tiiny">Open Source</a><a class="text-decoration-none"
+                href="https://viperadnan-git.github.io/?page=works">Services</a><a class="text-decoration-none"
+                href="https://viperadnan-git.github.io/pages/privacy-policy">Terms</a><a class="text-decoration-none"
+                href="https://viperadnan-git.github.io/pages/privacy-policy">Privacy Policy</a></h6><small
+            class="d-flex justify-content-center">Copyright &copy; 2022 &mdash; All rights reserved<br /></small>
+    </footer>
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/sweetalert2.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/typewriter-effect@latest/dist/core.js"></script>
+    <script src="/static/js/js.cookie.min.js"></script>
+    <script src="/static/js/script.js"></script>
+</body>
+
+</html>

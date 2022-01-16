@@ -1,10 +1,11 @@
 {
   "name": "tiiny",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shorten your long URLs in just a click",
   "main": "index.js",
   "scripts": {
-    "test": "node index.js"
+    "test": "node index.js 127.0.0.1 8000",
+    "start": "node index.js"
   },
   "repository": {
     "type": "git",
@@ -24,8 +25,11 @@
   },
   "homepage": "https://github.com/viperadnan-git/tiiny#readme",
   "dependencies": {
-    "cheerio": "^1.0.0-rc.10",
+    "cookie-parser": "^1.4.6",
     "deta": "^1.0.0",
-    "express": "^4.17.1"
+    "dotenv": "^12.0.3",
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
+    "joi": "^17.5.0"
   }
 }

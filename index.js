@@ -1,88 +1,82 @@
-const fs = require('fs');
-const { Deta } = require('deta');
+const dotenv = require('dotenv');
+dotenv.config()
+
 const express = require('express');
-const cheerio = require('cheerio');
+const cookieParser = require('cookie-parser')
+const { Deta } = require('deta');
+const path = require('path');
+const JoiSchemas = require('./src/schema')
+const { JoiValidate } = require('./src/middlewares')
+const { generateDomainName, generateKey } = require('./src/utils')
 
-const deta = Deta();
-const db = deta.Base('tiiny');
 
-const port = process.argv[3] || process.env.PORT || 8080;
+const deta = Deta(process.env.DETA_PROJECT_KEY);
+const db = deta.Base(process.env.DETA_BASE_NAME || 'tiiny');
+
+
+const port = process.argv[3] || process.env.PORT || 8000;
 const hostname = process.argv[2] || process.env.HOST || '127.0.0.1';
-const DOMAIN_NAME = process.env.DOMAIN_NAME || `${process.env.DETA_PATH}.deta.dev`;
+const website_domain = generateDomainName(hostname, port);
+const website_name = process.env.WEBSITE_NAME || 'Tiiny';
 const app = express();
 
-String.prototype.isalnum = function() {
-    var regExp = /^[A-Za-z0-9]+$/;
-    return (this.match(regExp));
-};
 
-async function getRandomString(length = 8) {
-    var randomChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var result = '';
-    for (var i = 0; i < length; i++) {
-        result += randomChars.charAt(Math.floor(Math.random() * randomChars.length));
-    }
-    return result;
-}
 
-async function stringIsAValidUrl(str) {
-    var pattern = "(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+";
-    return str.match(pattern);
-}
-
-app.use('/static', express.static('assets/static'));
 app.use(async (req, res, next) => {
-    res.header("X-Powered-By", "viperadnan");
     console.log(`${req.method} ${req.path}`);
     next();
 });
 app.use(express.json());
+app.use(cookieParser());
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, './src/web'));
+app.use('/static', express.static('src/web/assets'));
 
-var cheerio_load = cheerio.load(fs.readFileSync("./assets/index.html"));
-cheerio_load('#key-box-label').text(`https://${DOMAIN_NAME}/`);
-var mainHTML = cheerio_load.html();
 
 app.get("/", async (req, res) => {
-    res.setHeader('Content-type', 'text/html');
-    res.end(mainHTML);
+    let mode = req.cookies.__TIINY_MODE;
+    res.setHeader('Content-Type', 'text/html');
+    res.render('index', {
+        mode: mode,
+        website_name: website_name,
+        website_domain: website_domain
+    })
 });
 
-app.post("/api", async (req, res) => {
-    if (req.body.url && await stringIsAValidUrl(req.body.url)) {
-        if (!req.body.key) {
-            req.body.key = await getRandomString();
-        }
-        if (req.body.key.isalnum()) {
-            try {
-                res.end((await db.insert({
-                    key: req.body.key, url: req.body.url
-                })).key);
-            } catch(e) {
-                res.status(400).end(e.message);
-            }
-        } else {
-            res.status(400).end('Key can only contain alphanumeric characters');
-        }
-    } else {
-        res.status(400).end('Invalid URL provided');
+
+app.post("/api", JoiValidate(JoiSchemas.api), async (req, res) => {
+    if (!req.body.key) {
+        req.body.key = generateKey()
+    }
+    try {
+        let key = (await db.insert(req.body)).key
+        res.json({
+            key: key,
+            url: `http://${website_domain}/${key}`
+        });
+    } catch (error) {
+        res.status(400).json({ error: error.message });
     }
 });
+
 
 app.get('/:key', async (req, res) => {
     let data = await db.get(req.params.key);
     if (data) {
         res.redirect(data.url);
     } else {
-        res.status(404).sendFile('assets/404.html', {
-            root: __dirname
-        });
+        let mode = req.cookies.__TIINY_MODE;
+        res.status(404).render('404', {
+            mode: mode
+        })
     }
 });
 
-/** Deta will listen it automatically
-app.listen(port, hostname, async () => {
-    console.log(`Listening at ${hostname}:${port}`);
-});
-**/
 
-module.exports = app;
+if (process.env.DETA_RUNTIME) {
+    module.exports = app;
+} else {
+    app.listen(port, hostname, async () => {
+        console.log(`Listening at ${hostname}:${port}`);
+    });
+}
