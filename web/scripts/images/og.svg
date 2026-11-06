@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <style>
+    @font-face { font-family: Playfair; src: url(../../node_modules/@fontsource-variable/playfair-display/files/playfair-display-latin-wght-normal.woff2); font-weight: 400 900; }
+    @font-face { font-family: Playfair; font-style: italic; src: url(../../node_modules/@fontsource-variable/playfair-display/files/playfair-display-latin-wght-italic.woff2); font-weight: 400 900; }
+    @font-face { font-family: Courier Prime; src: url(../../node_modules/@fontsource/courier-prime/files/courier-prime-latin-400-normal.woff2); }
+    @font-face { font-family: Courier Prime; font-weight: 700; src: url(../../node_modules/@fontsource/courier-prime/files/courier-prime-latin-700-normal.woff2); }
+    .serif { font-family: Playfair; } .type { font-family: 'Courier Prime'; }
+  </style>
+  <defs>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#1a2421" flood-opacity=".16"/></filter>
+  </defs>
+  <rect width="1200" height="630" fill="#f3f5ef"/>
+  <text x="72" y="104" class="serif" font-size="44" font-weight="800" fill="#1a2421" letter-spacing="-0.9">tiiny</text>
+  <text class="serif" font-size="66" font-weight="500" fill="#1a2421" letter-spacing="-1.6">
+    <tspan x="72" y="270">Short links</tspan><tspan x="72" y="344">that count clicks,</tspan><tspan x="72" y="418">not people.</tspan>
+  </text>
+  <text x="72" y="540" class="type" font-size="24" fill="#5d6b66">Self-hosted link shortener. Counted, not tracked.</text>
+  <g transform="translate(636 200) rotate(-2.2 270 115)" filter="url(#sh)">
+    <rect width="530" height="230" rx="16" fill="#fbfcf8"/>
+    <text x="34" y="82" class="type" font-size="38" font-weight="700" fill="#1a2421"><tspan font-weight="400" fill="#5d6b66">/</tspan>autumn</text>
+    <text x="34" y="140" font-family="sans-serif" font-size="17" fill="#5d6b66">Redirects to</text>
+    <text x="34" y="172" class="type" font-size="19" fill="#5d6b66">store.example.com/collections/…</text>
+    <g transform="translate(436 78) rotate(8)">
+      <rect x="-56" y="-44" width="112" height="88" rx="10" fill="none" stroke="#2f3fd0" stroke-width="4"/>
+      <text y="-12" text-anchor="middle" class="type" font-size="19" font-weight="700" fill="#2f3fd0">CLICKS</text>
+      <text y="24" text-anchor="middle" class="type" font-size="30" font-weight="700" fill="#2f3fd0">4,812</text>
+    </g>
+  </g>
+</svg>

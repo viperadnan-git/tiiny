@@ -1,0 +1,21 @@
+{
+	"name": "tiiny",
+	"short_name": "tiiny",
+	"description": "Self-hosted link shortener that counts clicks, not people. Custom slugs, privacy-friendly stats and an admin panel in one small binary.",
+	"start_url": "/dashboard",
+	"display": "standalone",
+	"background_color": "#f3f5ef",
+	"theme_color": "#f3f5ef",
+	"icons": [
+		{
+			"src": "/favicon.svg",
+			"type": "image/svg+xml",
+			"sizes": "any"
+		},
+		{
+			"src": "/apple-touch-icon.png",
+			"type": "image/png",
+			"sizes": "180x180"
+		}
+	]
+}

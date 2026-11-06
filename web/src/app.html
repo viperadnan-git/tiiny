@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
+		<meta name="tiiny-base-url" content="%%TIINY_BASE_URL%%" />
+		<meta name="theme-color" content="#f3f5ef" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#141b19" media="(prefers-color-scheme: dark)" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
+		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<!-- 200.html has no SSR'd mode-watcher script; set the theme before first paint. -->
+		<script>
+			const m = localStorage.getItem('mode-watcher-mode') ?? 'system';
+			if (m === 'dark' || (m === 'system' && matchMedia('(prefers-color-scheme: dark)').matches))
+				document.documentElement.classList.add('dark');
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

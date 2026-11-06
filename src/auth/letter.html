@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>{{title}}</title>
+<style>
+	body { margin: 0; padding: 0; }
+	a { color: #2f3fd0; }
+	.btn a { color: #fbfcf8 !important; text-decoration: none; }
+	@media (max-width: 600px) {
+		.pad { padding-left: 22px !important; padding-right: 22px !important; }
+		.h1 { font-size: 28px !important; }
+	}
+	@media (prefers-color-scheme: dark) {
+		.paper { background: #141b19 !important; }
+		.sheet { background: #1c2522 !important; border-color: #33403b !important; }
+		.ink { color: #e9eee6 !important; }
+		.soft { color: #9eaba5 !important; }
+		.rule { border-color: #33403b !important; }
+		.stamp { color: #7d8bff !important; border-color: #7d8bff !important; }
+		.gap { background: #1c2522 !important; }
+		.blue { background: #7d8bff !important; }
+		.red { background: #ff8a80 !important; }
+		a { color: #7d8bff !important; }
+		.btn { background: #e9eee6 !important; }
+		.btn a { color: #141b19 !important; }
+	}
+</style>
+</head>
+<body class="paper" style="margin:0;padding:0;background:#f3f5ef;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">{{preheader}}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="paper" style="background:#f3f5ef;">
+<tr><td align="center" style="padding:32px 12px;">
+	<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+	<tr><td class="ink" style="padding:0 4px 14px;font-family:'Playfair Display',Georgia,'Times New Roman',serif;font-size:24px;font-weight:700;color:#1a2421;">tiiny</td></tr>
+	<tr><td class="sheet" style="background:#fbfcf8;border:1px solid #d5dbd2;border-radius:14px;overflow:hidden;">
+		{{band}}
+		<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+		<tr><td class="pad" style="padding:30px 40px 0;">
+			<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+			<tr>
+				<td valign="top" style="font-family:'Courier Prime','Courier New',Courier,monospace;font-size:15px;line-height:24px;">
+					<div class="soft" style="font-family:'Public Sans',Arial,Helvetica,sans-serif;font-size:13px;color:#5d6b66;">Deliver to</div>
+					<div class="ink rule" style="color:#1a2421;border-bottom:1px solid #d5dbd2;padding-top:2px;word-break:break-all;">{{to}}</div>
+				</td>
+				<td width="24" style="width:24px;"></td>
+				<td valign="top" align="right" width="104" style="width:104px;">
+					<div class="stamp" style="display:inline-block;transform:rotate(-6deg);min-width:84px;border:2.5px solid #2f3fd0;border-radius:8px;padding:6px 10px;text-align:center;color:#2f3fd0;font-family:'Courier Prime','Courier New',Courier,monospace;font-weight:700;font-size:12px;line-height:14px;text-transform:uppercase;letter-spacing:0.02em;">{{stamp_label}}<br><span style="font-size:22px;line-height:28px;">{{stamp_value}}</span></div>
+				</td>
+			</tr>
+			</table>
+		</td></tr>
+		<tr><td class="pad" style="padding:30px 40px 0;">
+			<h1 class="h1 ink" style="margin:0;font-family:'Playfair Display',Georgia,'Times New Roman',serif;font-size:32px;line-height:1.12;font-weight:700;color:#1a2421;">{{title}}</h1>
+			<p class="soft" style="margin:14px 0 0;font-family:'Public Sans',Arial,Helvetica,sans-serif;font-size:16px;line-height:1.6;color:#5d6b66;">{{intro}}</p>
+		</td></tr>
+		{{rows}}
+		<tr><td class="pad" style="padding:28px 40px 0;">
+			<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+				<td class="btn" style="background:#1a2421;border-radius:9px;">
+					<a href="{{url}}" style="display:inline-block;padding:13px 22px;font-family:'Public Sans',Arial,Helvetica,sans-serif;font-size:15px;font-weight:600;color:#fbfcf8;text-decoration:none;">{{action}}</a>
+				</td>
+			</tr></table>
+		</td></tr>
+		<tr><td class="pad" style="padding:24px 40px 34px;">
+			<div class="soft" style="font-family:'Public Sans',Arial,Helvetica,sans-serif;font-size:13px;color:#5d6b66;">If the button doesn't work, paste this address into your browser:</div>
+			<div style="margin-top:4px;font-family:'Courier Prime','Courier New',Courier,monospace;font-size:14px;line-height:20px;word-break:break-all;"><a href="{{url}}" style="color:#2f3fd0;">{{url}}</a></div>
+		</td></tr>
+		</table>
+		{{band}}
+	</td></tr>
+	<tr><td class="soft" style="padding:16px 4px 0;font-family:'Public Sans',Arial,Helvetica,sans-serif;font-size:13px;line-height:1.55;color:#5d6b66;">{{note}}<br>Sent by tiiny at <a href="{{origin}}" style="color:#5d6b66;">{{origin}}</a>.</td></tr>
+	</table>
+</td></tr>
+</table>
+</body>
+</html>

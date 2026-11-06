@@ -1,0 +1,348 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn-svelte/tailwind.css';
+@import '@fontsource-variable/public-sans';
+@import '@fontsource-variable/playfair-display';
+@import '@fontsource-variable/playfair-display/wght-italic.css';
+@import '@fontsource/courier-prime/latin-400.css';
+@import '@fontsource/courier-prime/latin-700.css';
+
+@custom-variant dark (&:is(.dark *));
+
+/* Metric-matched fallbacks (Georgia / Arial / Courier New) so the swap doesn't shift layout. */
+@font-face {
+	font-family: 'Playfair Display Fallback';
+	src: local('Georgia');
+	size-adjust: 97.6%;
+	ascent-override: 110.87%;
+	descent-override: 25.72%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Public Sans Fallback';
+	src: local('Arial');
+	size-adjust: 105.42%;
+	ascent-override: 90.11%;
+	descent-override: 21.34%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Courier Prime Fallback';
+	src: local('Courier New');
+	size-adjust: 99.92%;
+	ascent-override: 78.19%;
+	descent-override: 34.21%;
+	line-gap-override: 0%;
+}
+
+:root {
+	--paper: #f3f5ef;
+	--sheet: #fbfcf8;
+	--ink: #1a2421;
+	--soft: #5d6b66;
+	--rule: #d5dbd2;
+	--stamp: #2f3fd0;
+	--wash: #e7ebe3;
+	--field: #8a958f;
+	--shimmer: color-mix(in oklab, var(--sheet) 85%, transparent);
+	--paper-shadow: 0 10px 24px -16px rgba(26, 36, 33, 0.28);
+
+	--background: var(--paper);
+	--foreground: var(--ink);
+	--card: var(--sheet);
+	--card-foreground: var(--ink);
+	--popover: var(--sheet);
+	--popover-foreground: var(--ink);
+	--primary: var(--ink);
+	--primary-foreground: var(--sheet);
+	--secondary: var(--wash);
+	--secondary-foreground: var(--ink);
+	--muted: var(--wash);
+	--muted-foreground: var(--soft);
+	--accent: var(--wash);
+	--accent-foreground: var(--ink);
+	--destructive: #b3261e;
+	--border: var(--rule);
+	--input: var(--field);
+	--ring: var(--stamp);
+	--radius: 0.875rem;
+}
+
+.dark {
+	--paper: #141b19;
+	--sheet: #1c2522;
+	--ink: #e9eee6;
+	--soft: #9eaba5;
+	--rule: #33403b;
+	--stamp: #7d8bff;
+	--wash: #25302c;
+	--field: #6b7a74;
+	--shimmer: color-mix(in oklab, var(--ink) 7%, transparent);
+	/* Dark paper shows no drop shadow. */
+	--paper-shadow: 0 0 #0000;
+	--destructive: #ff8a80;
+}
+
+@theme inline {
+	--font-sans: 'Public Sans Variable', 'Public Sans Fallback', system-ui, sans-serif;
+	--font-serif: 'Playfair Display Variable', 'Playfair Display Fallback', Georgia, serif;
+	--font-mono: 'Courier Prime', 'Courier Prime Fallback', 'Courier New', ui-monospace, monospace;
+	--color-rule: var(--rule);
+	--color-stamp: var(--stamp);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+	--radius-sm: calc(var(--radius) * 0.4);
+	--radius-md: calc(var(--radius) * 0.6);
+	--radius-lg: var(--radius);
+	--radius-xl: calc(var(--radius) * 1.15);
+	--radius-2xl: calc(var(--radius) * 1.4);
+	--radius-3xl: calc(var(--radius) * 1.8);
+	--radius-4xl: calc(var(--radius) * 2.2);
+	--shadow-paper: var(--paper-shadow);
+	--ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring;
+	}
+	html {
+		color-scheme: light;
+		-webkit-text-size-adjust: 100%;
+	}
+	html.dark {
+		color-scheme: dark;
+	}
+	/* Clears the sticky header when jumping to an anchor. */
+	html {
+		scroll-padding-top: 84px;
+	}
+	/* Tailwind v4 preflight dropped the pointer on buttons. */
+	button:not(:disabled),
+	[role='button']:not([aria-disabled='true']) {
+		cursor: pointer;
+	}
+	body {
+		@apply bg-background text-foreground;
+		font-family: var(--font-sans);
+		font-size: 16px;
+		line-height: 1.6;
+		-webkit-font-smoothing: antialiased;
+		-webkit-tap-highlight-color: transparent;
+	}
+	h1,
+	h2,
+	h3,
+	h4 {
+		font-family: var(--font-serif);
+		font-weight: 500;
+		letter-spacing: -0.02em;
+		line-height: 1.1;
+		text-wrap: balance;
+	}
+	a:focus-visible,
+	summary:focus-visible {
+		outline: 2px solid var(--stamp);
+		outline-offset: 3px;
+		border-radius: 4px;
+	}
+	/* Native clear button is browser blue; draw it in the theme's ink. */
+	input[type='search']::-webkit-search-cancel-button {
+		appearance: none;
+		width: 16px;
+		height: 16px;
+		cursor: pointer;
+		background: var(--soft);
+		mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E")
+			center / contain no-repeat;
+	}
+	input[type='search']::-webkit-search-cancel-button:hover {
+		background: var(--ink);
+	}
+	::selection {
+		background: color-mix(in oklab, var(--stamp) 22%, transparent);
+	}
+	/* Grid items default to min-width: auto, which lets a long URL widen the page. */
+	.grid > * {
+		min-width: 0;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-delay: 0s !important;
+			transition-delay: 0s !important;
+			transition-duration: 0.01ms !important;
+		}
+	}
+}
+
+@layer components {
+	.wrap {
+		margin-inline: auto;
+		width: 100%;
+		max-width: 1120px;
+		padding-inline: 28px;
+	}
+	@media (max-width: 640px) {
+		.wrap {
+			padding-inline: 16px;
+		}
+	}
+	.text-link {
+		color: var(--stamp);
+		text-decoration: underline;
+		text-decoration-thickness: 1px;
+		text-underline-offset: 3px;
+	}
+	.prose-paper {
+		max-width: 68ch;
+		color: var(--soft);
+	}
+	.prose-paper :where(h2) {
+		margin-top: 2.5rem;
+		font-size: 1.875rem;
+		color: var(--ink);
+	}
+	.prose-paper :where(h3) {
+		margin-top: 1.75rem;
+		font-size: 1.375rem;
+		color: var(--ink);
+	}
+	.prose-paper :where(p, ul) {
+		margin-top: 0.875rem;
+	}
+	.prose-paper :where(ul) {
+		padding-left: 1.25rem;
+		list-style: disc;
+	}
+	.prose-paper :where(li + li) {
+		margin-top: 0.375rem;
+	}
+	.prose-paper :where(strong) {
+		color: var(--ink);
+		font-weight: 600;
+	}
+	.prose-paper :where(a) {
+		color: var(--stamp);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.prose-paper :where(code) {
+		font-family: var(--font-mono);
+		font-size: 0.95em;
+		color: var(--ink);
+	}
+}
+
+/* Perforation: two notches where the stub tears off. A utility so it can switch on at a breakpoint (`md:ticket`). */
+@utility ticket {
+	-webkit-mask:
+		radial-gradient(circle 11px at calc(100% - var(--stub)) 0, transparent 98%, #000) top / 100% 51%
+			no-repeat,
+		radial-gradient(circle 11px at calc(100% - var(--stub)) 100%, transparent 98%, #000) bottom /
+			100% 51% no-repeat;
+	mask:
+		radial-gradient(circle 11px at calc(100% - var(--stub)) 0, transparent 98%, #000) top / 100% 51%
+			no-repeat,
+		radial-gradient(circle 11px at calc(100% - var(--stub)) 100%, transparent 98%, #000) bottom /
+			100% 51% no-repeat;
+	/* The mask clips the card border at the notches, so each notch gets its own ring. Offsets are from the padding box (1px border). */
+	&::before,
+	&::after {
+		content: '';
+		position: absolute;
+		left: calc(100% + 1px - var(--stub) - 12px);
+		width: 24px;
+		height: 24px;
+		border: 1px solid var(--border);
+		border-radius: 50%;
+		pointer-events: none;
+	}
+	&::before {
+		top: -13px;
+	}
+	&::after {
+		bottom: -13px;
+	}
+}
+
+@layer components {
+	/* Slugs get retyped, so they use the typewriter face (display-serif hyphens and digits misread). */
+	.slug {
+		font-family: var(--font-mono);
+		font-weight: 700;
+		line-height: 1.05;
+		letter-spacing: -0.01em;
+		overflow-wrap: anywhere;
+	}
+	.slug .host {
+		font-weight: 400;
+		color: var(--soft);
+	}
+	/* Hidden on scroll down; stays put while it holds keyboard focus or an open menu. */
+	.auto-hide {
+		transition: translate 220ms var(--ease-out);
+	}
+	.auto-hide[data-hidden]:not(:has(:focus-visible)):not(:has([aria-expanded='true'])) {
+		translate: 0 -100%;
+	}
+	/* The stamp lands: pressed from above the paper, then settles. */
+	.stamp-in {
+		animation: stamp-in 280ms var(--ease-out) both;
+	}
+	.enter {
+		animation: enter 200ms var(--ease-out) both;
+	}
+}
+
+/* `scale`, not `transform`: composes with the stamp's `rotate`, and stays off layout. */
+@keyframes stamp-in {
+	from {
+		opacity: 0;
+		scale: 1.35;
+	}
+}
+
+@keyframes shimmer {
+	to {
+		translate: 100% 0;
+	}
+}
+
+@keyframes enter {
+	from {
+		opacity: 0;
+		translate: 0 4px;
+	}
+}
+
+@keyframes slug-rewrite {
+	from {
+		opacity: 0.35;
+		filter: blur(2px);
+	}
+}
+.slug-rewrite {
+	animation: slug-rewrite 180ms cubic-bezier(0.23, 1, 0.32, 1);
+	@media (prefers-reduced-motion: reduce) {
+		animation: none;
+	}
+}

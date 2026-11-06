@@ -1,0 +1,155 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Tag builds always finish; a newer push to a branch or PR supersedes the old run.
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches Cargo.toml
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          [ "v$version" = "$GITHUB_REF_NAME" ] || { echo "::error::tag $GITHUB_REF_NAME, Cargo.toml says $version"; exit 1; }
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: oven-sh/setup-bun@v2
+      - uses: Swatinem/rust-cache@v2
+      # build.rs builds the web app, which the server embeds.
+      - run: bun install --frozen-lockfile
+        working-directory: web
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: bun run check
+      - run: bun run test
+
+  # Docker's reusable builder: one native runner per platform, then one multi-arch manifest per
+  # image name from the same digests, so GHCR and Docker Hub get the identical image. Signed, with provenance.
+  image:
+    name: Image
+    needs: [rust, web]
+    uses: docker/github-builder/.github/workflows/build.yml@v1
+    permissions:
+      contents: read
+      packages: write # push to GHCR
+      id-token: write # sign attestations and cache entries
+    with:
+      output: image
+      push: ${{ github.event_name != 'pull_request' }}
+      platforms: linux/amd64,linux/arm64
+      cache: true
+      cache-mode: max
+      set-meta-labels: true
+      # Docker Hub is optional: set the DOCKERHUB_USERNAME variable and the DOCKERHUB_TOKEN secret.
+      meta-images: |
+        ghcr.io/${{ github.repository }}
+        name=docker.io/${{ vars.DOCKERHUB_USERNAME || 'unset' }}/${{ github.event.repository.name }},enable=${{ vars.DOCKERHUB_USERNAME != '' }}
+      meta-tags: |
+        type=raw,value=latest,enable={{is_default_branch}}
+        type=semver,pattern={{version}}
+        type=semver,pattern={{major}}.{{minor}}
+        type=semver,pattern={{major}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
+        type=ref,event=pr
+        type=sha
+    secrets:
+      # Without Docker Hub the second entry repeats the GHCR login, so no entry has empty credentials.
+      registry-auths: |
+        - registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        - registry: ${{ vars.DOCKERHUB_USERNAME && 'docker.io' || 'ghcr.io' }}
+          username: ${{ vars.DOCKERHUB_USERNAME || github.actor }}
+          password: ${{ vars.DOCKERHUB_USERNAME && secrets.DOCKERHUB_TOKEN || secrets.GITHUB_TOKEN }}
+
+  release:
+    name: Release
+    needs: image
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # tags and history for the changelog
+      - name: Write notes
+        env:
+          DIGEST: ${{ needs.image.outputs.digest }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+        run: |
+          tag=$GITHUB_REF_NAME version=${GITHUB_REF_NAME#v}
+          git fetch --force origin "refs/tags/$tag:refs/tags/$tag" # checkout leaves a lightweight copy
+          prev=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null || true)
+          {
+            # Highlights: the annotated tag's message (`git tag -a v1.2.3 -m "..."`).
+            if [ "$(git cat-file -t "$tag")" = tag ]; then
+              echo "## Highlights"; echo; git tag -l --format='%(contents:body)' "$tag"; echo
+            fi
+            echo "## Install"; echo
+            echo '```sh'
+            echo "docker pull ghcr.io/${GITHUB_REPOSITORY,,}:$version"
+            [ -n "$DOCKERHUB_USERNAME" ] && echo "docker pull $DOCKERHUB_USERNAME/${GITHUB_REPOSITORY#*/}:$version"
+            echo '```'; echo
+            echo "Platforms \`linux/amd64\`, \`linux/arm64\`, digest \`$DIGEST\`, signed with SLSA provenance."
+            if [ -n "$prev" ]; then
+              echo; echo "## Changes since $prev"; echo
+              git log --no-merges --format='- %s (%h)' "$prev..$tag"
+            fi
+          } > notes.md
+          # The generated part (contributors, full changelog) only makes sense against an ancestor tag.
+          echo "PREV=$prev" >> "$GITHUB_ENV"
+          cat notes.md
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          args=(--verify-tag --title "$GITHUB_REF_NAME" --notes-file notes.md)
+          [ -n "$PREV" ] && args+=(--generate-notes --notes-start-tag "$PREV")
+          [[ "$GITHUB_REF_NAME" == *-* ]] && args+=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" "${args[@]}"
+
+  dockerhub-readme:
+    name: Docker Hub README
+    needs: image
+    if: github.ref == 'refs/heads/main' && vars.DOCKERHUB_USERNAME != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: peter-evans/dockerhub-description@v5
+        with:
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+          short-description: ${{ github.event.repository.description }}
+          readme-filepath: README.md
+          # Relative links and images point at GitHub.
+          enable-url-completion: true

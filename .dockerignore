@@ -1,0 +1,34 @@
+# Same rules as .gitignore (Rust + Node templates), written for Docker,
+# whose patterns only match from the context root unless prefixed with **/.
+
+# Rust
+**/debug
+**/target
+**/*.rs.bk
+**/*.pdb
+**/mutants.out*/
+**/rustc-ice-*.txt
+
+# Node
+**/node_modules
+**/logs
+**/*.log
+**/coverage
+**/*.tsbuildinfo
+**/.npm
+**/.eslintcache
+**/.cache
+**/.svelte-kit
+**/.vite
+**/vite.config.*.timestamp-*
+**/*.tgz
+
+# Secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Not needed in the build context
+.git
+web/build
+.data*

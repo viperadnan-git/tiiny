@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /auth
+Disallow: /api/
+Disallow: /login
+Disallow: /signup
+
+Sitemap: %%TIINY_BASE_URL%%/sitemap.xml
