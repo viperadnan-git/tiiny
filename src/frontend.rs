@@ -25,7 +25,8 @@ pub const BASE_URL_PLACEHOLDER: &str = "%%TIINY_BASE_URL%%";
 
 const SPA_PREFIXES: &[&str] = &["/login", "/signup", "/auth", "/dashboard", "/admin"];
 const SPA_SHELL: &str = "200.html";
-const STATUS_PAGES: &[&str] = &["404.html", "410.html", "blocked.html"];
+const STATUS_PAGES: &[&str] = &["404.html", "410.html", "blocked.html", PREVIEW_PAGE];
+const PREVIEW_PAGE: &str = "preview.html";
 
 /// Embedded files with the base-URL placeholder replaced, the prerendered pages and the sitemap, built once at startup.
 #[derive(Clone)]
@@ -108,6 +109,16 @@ impl Frontend {
         )
     }
 
+    fn body(&self, path: &str) -> Option<Bytes> {
+        if let Some(b) = self.substituted.get(path) {
+            return Some(b.clone());
+        }
+        Some(match Assets::get(path)?.data {
+            Cow::Borrowed(b) => Bytes::from_static(b),
+            Cow::Owned(v) => Bytes::from(v),
+        })
+    }
+
     fn file(&self, path: &str, status: StatusCode) -> Option<Response> {
         let f = Assets::get(path)?;
         let cache = HeaderValue::from_static(if path.starts_with("_app/immutable/") {
@@ -117,14 +128,7 @@ impl Frontend {
         });
         let mime = f.metadata.mimetype();
         let content_type = HeaderValue::from_str(mime).ok()?;
-        let body = self
-            .substituted
-            .get(path)
-            .cloned()
-            .unwrap_or_else(|| match f.data {
-                Cow::Borrowed(b) => Bytes::from_static(b),
-                Cow::Owned(v) => Bytes::from(v),
-            });
+        let body = self.body(path)?;
         let mut r = (
             status,
             [
@@ -149,6 +153,29 @@ impl Frontend {
         Some(r)
     }
 
+    /// `/{slug}+`: where the link goes, without redirecting. Plain text if the frontend wasn't built.
+    pub fn preview(&self, slug: &str, url: &str, permanent: bool) -> Response {
+        let host = url::Url::parse(url)
+            .ok()
+            .and_then(|u| u.host_str().map(str::to_owned))
+            .unwrap_or_default();
+        let code = if permanent { "301" } else { "302" };
+        let Some(mut r) = self.file(PREVIEW_PAGE, StatusCode::OK) else {
+            return format!("{slug} goes to {url}\n").into_response();
+        };
+        let html = String::from_utf8_lossy(&self.body(PREVIEW_PAGE).unwrap_or_default())
+            .replace("%%TIINY_PREVIEW_SLUG%%", &escape(slug))
+            .replace("%%TIINY_PREVIEW_URL%%", &escape(url))
+            .replace("%%TIINY_PREVIEW_HOST%%", &escape(&host))
+            .replace("%%TIINY_PREVIEW_CODE%%", code);
+        r.headers_mut().insert(
+            header::CACHE_CONTROL,
+            HeaderValue::from_static("private, no-cache"),
+        );
+        *r.body_mut() = html.into();
+        r
+    }
+
     /// HTML page for 404 / 410 / 451; plain text if the frontend wasn't built.
     pub fn status_page(&self, status: StatusCode) -> Response {
         let name = match status {
@@ -160,6 +187,21 @@ impl Frontend {
             (status, status.canonical_reason().unwrap_or_default()).into_response()
         })
     }
+}
+
+fn escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            c => out.push(c),
+        }
+    }
+    out
 }
 
 fn is_spa_route(path: &str) -> bool {

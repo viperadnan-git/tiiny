@@ -12,11 +12,18 @@ pub async fn redirect(
     headers: HeaderMap,
     ClientAddr(ip): ClientAddr,
 ) -> Response {
-    let slug = uri.path().strip_prefix('/').unwrap_or_default();
+    let path = uri.path().strip_prefix('/').unwrap_or_default();
+    // `/{slug}+` previews the destination; slugs never contain `+`.
+    let (slug, preview) = path.strip_suffix('+').map_or((path, false), |s| (s, true));
     if !is_well_formed_slug(slug) {
         return state.frontend.status_page(StatusCode::NOT_FOUND);
     }
     match state.cache.resolve(&state.db, slug).await {
+        Ok(CachedSlug::Found { url, permanent, .. }) if preview => {
+            state
+                .frontend
+                .preview(slug, url.to_str().unwrap_or_default(), permanent)
+        }
         Ok(CachedSlug::Found {
             link_id,
             url,

@@ -35,7 +35,8 @@
 			points: [
 				'Custom slugs of 3 to 64 letters, numbers, hyphens or underscores. Case-sensitive.',
 				'Leave it blank for a random seven-character slug.',
-				'Search your links by slug or destination; copy any link in one click.'
+				'Search your links by slug or destination; copy any link in one click.',
+				'Add + to any short link to see where it goes before you open it.'
 			]
 		},
 		{

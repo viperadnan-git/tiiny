@@ -46,6 +46,25 @@
 	const admin = $derived(page.data.me?.role === 'admin');
 	let editing = $state<Link | null>(null);
 
+	// The destination is one truncated line; "Show full" appears only when it's cut off.
+	let urlEl = $state<HTMLElement | null>(null);
+	let fullUrl = $state(false);
+	let clipped = $state(false);
+	$effect(() => {
+		void slug;
+		fullUrl = false;
+	});
+	$effect(() => {
+		const el = urlEl;
+		void l.url;
+		if (!el || fullUrl) return;
+		const check = () => (clipped = el.scrollWidth > el.clientWidth);
+		check();
+		const ro = new ResizeObserver(check);
+		ro.observe(el);
+		return () => ro.disconnect();
+	});
+
 	function saved(next: Link) {
 		link = next;
 		// A new slug is a new address for this page.
@@ -183,8 +202,26 @@
 				{#if l.blocked}<Badge variant="stamp-destructive" title="Blocked by an admin">blocked</Badge
 					>{/if}
 			</div>
-			<p class="mt-3 text-[13px] text-muted-foreground">Redirects to</p>
-			<p class="mt-0.5 truncate font-mono text-[14px] sm:text-[15px]">
+			<div class="mt-3 flex items-baseline justify-between gap-3 text-[13px]">
+				<p class="whitespace-nowrap text-muted-foreground">Redirects to</p>
+				{#if link && (clipped || fullUrl)}
+					<Button
+						variant="link"
+						class="h-auto shrink-0 border-0 p-0 text-[13px] leading-[inherit] whitespace-nowrap"
+						aria-expanded={fullUrl}
+						aria-controls="destination"
+						onclick={() => (fullUrl = !fullUrl)}
+						>{#if fullUrl}Show less{:else}Show full{/if}</Button
+					>
+				{/if}
+			</div>
+			<p
+				id="destination"
+				bind:this={urlEl}
+				class="mt-0.5 font-mono text-[14px] sm:text-[15px] {fullUrl
+					? 'max-h-52 overflow-y-auto overscroll-contain break-all'
+					: 'truncate'}"
+			>
 				<Skeleton loading={!link} class="inline-block max-w-full overflow-hidden"
 					><a
 						class="text-muted-foreground hover:text-foreground"

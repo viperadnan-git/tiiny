@@ -138,3 +138,48 @@ async fn blocked_link_records_no_click() {
     .await;
     assert_eq!(n, 0);
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn plus_previews_without_redirecting_or_counting() {
+    use axum::http::StatusCode;
+    let app = test_app(&[]).await;
+    let uid = insert_user(&app.state.db, "a@x.com", "user").await;
+    let l = add_link(
+        &app,
+        uid,
+        "peek",
+        "https://example.com/a?x=1&y=\"<b>\"",
+        false,
+    )
+    .await;
+    add_link(&app, uid, "perm", "https://example.org/", true).await;
+
+    let r = app.server.get("/peek+").await;
+    r.assert_status_ok();
+    assert!(r.maybe_header("location").is_none());
+    assert_eq!(r.header("cache-control"), "private, no-cache");
+    let html = r.text();
+    assert!(html.contains(">example.com<"), "{html}");
+    assert!(html.contains("href=\"https://example.com/a?x=1&amp;y=%22%3Cb%3E%22\""));
+    assert!(!html.contains("%%TIINY_PREVIEW_") && !html.contains("<b>"));
+    assert!(app.server.get("/perm+").await.text().contains(">301<"));
+
+    app.state.stats.flush(&app.state.db).await.unwrap();
+    let clicks = common::scalar(
+        &app.state.db,
+        "SELECT click_count FROM links WHERE id = ?1",
+        [l.id],
+    )
+    .await;
+    assert_eq!(clicks, 0, "a preview is not a click");
+
+    set_blocked(&app.state.db, l.id, true).await.unwrap();
+    app.state.cache.evict("peek");
+    app.server
+        .get("/peek+")
+        .await
+        .assert_status(StatusCode::UNAVAILABLE_FOR_LEGAL_REASONS);
+    for p in ["/nope+", "/peek++", "/+", "/preview"] {
+        app.server.get(p).await.assert_status(StatusCode::NOT_FOUND);
+    }
+}
