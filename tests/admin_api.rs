@@ -7,9 +7,15 @@ use serde_json::{Value, json};
 async fn make_link(s: &axum_test::TestServer, slug: &str, permanent: bool) -> String {
     let res = s
         .post("/api/v1/links")
-        .json(&json!({ "url": "https://example.com", "slug": slug, "permanent": permanent }))
+        .json(&json!({ "url": "https://example.com", "slug": slug }))
         .await;
     assert_eq!(res.status_code(), StatusCode::CREATED, "{}", res.text());
+    if permanent {
+        s.patch(&format!("/api/v1/links/{slug}"))
+            .json(&json!({ "permanent": true }))
+            .await
+            .assert_status_ok();
+    }
     res.json::<Value>()["slug"].as_str().unwrap().to_owned()
 }
 

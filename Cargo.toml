@@ -1,6 +1,6 @@
 [package]
 name = "tiiny"
-version = "2.0.0"
+version = "2.1.0"
 description = "Self-hosted link shortener that counts clicks, not people. Custom slugs, privacy-friendly stats and an admin panel in one small binary."
 authors = ["Adnan Ahmad <viperadnan@gmail.com>"]
 repository = "https://github.com/viperadnan-git/tiiny"

@@ -112,7 +112,7 @@ Accounts in `TIINY_ADMIN_EMAILS` are made admin again at every sign-in and resta
 
 ### How links behave
 
-- **Temporary (302)** links can change destination and slug, and every click is counted. They can be made permanent.
+- **Temporary (302)** links can change destination and slug, and every click is counted. Every link starts temporary; make it permanent from its menu.
 - **Permanent (301)** links can't be edited or made temporary. Browsers cache them for a day, so repeat clicks from one browser that day aren't counted.
 - **Deleting** a permanent or blocked link retires its slug: it answers `410 Gone` and can't be reused until an admin releases it.
 - **Blocked** links answer `451` with a "disabled for abuse" page.

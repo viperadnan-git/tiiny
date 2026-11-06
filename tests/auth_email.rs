@@ -165,7 +165,7 @@ async fn unverified_user_cannot_choose_slug_until_verified() {
     let err = create_owned(
         db,
         &Owner::User(u.id),
-        new_link(cfg, "https://example.com", Some("mine"), false),
+        new_link(cfg, "https://example.com", Some("mine")),
         rv,
         None,
     )
@@ -178,7 +178,7 @@ async fn unverified_user_cannot_choose_slug_until_verified() {
     create_owned(
         db,
         &Owner::User(u.id),
-        new_link(cfg, "https://example.com", None, false),
+        new_link(cfg, "https://example.com", None),
         rv,
         None,
     )
@@ -343,7 +343,7 @@ async fn mailer_disabled() {
     create_owned(
         &app.state.db,
         &Owner::User(u.id),
-        new_link(&app.state.config, "https://example.com", None, false),
+        new_link(&app.state.config, "https://example.com", None),
         rv,
         None,
     )

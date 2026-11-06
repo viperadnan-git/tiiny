@@ -89,9 +89,7 @@
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
 
-	<header
-		class="grid gap-5 border-b border-foreground pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end"
-	>
+	<header class="grid gap-5 border-b pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
 		<div class="flex min-w-0 items-start gap-4 sm:gap-5">
 			<UserAvatar
 				email={u.email}

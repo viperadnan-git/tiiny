@@ -11,7 +11,6 @@
 	import * as Empty from '#lib/components/ui/empty/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
 	import { Input } from '#lib/components/ui/input/index.js';
-	import * as ToggleGroup from '#lib/components/ui/toggle-group/index.js';
 	import LinkList from '#lib/components/LinkList.svelte';
 	import { copyText } from '#lib/clipboard.ts';
 	import CopyButton from '#lib/components/CopyButton.svelte';
@@ -43,7 +42,7 @@
 
 	const form = spaForm(
 		createLinkFormSchema,
-		{ url: '', slug: '', permanent: false },
+		{ url: '', slug: '' },
 		async (body) => {
 			const link = await api<Link>('POST', '/links', { ...body, slug: body.slug || undefined });
 			links = [link, ...links];
@@ -306,16 +305,11 @@
 					<!-- Postage slot: shows the redirect code the link will carry, stamped once it exists. -->
 					<div class="grid w-21 place-items-center self-start pt-1 sm:w-26">
 						{#if created}
-							<Stamp
-								label={created.copied ? 'Copied' : 'Ready'}
-								value={created.link.permanent ? '301' : '302'}
-								rotate={-8}
-								land
-							/>
+							<Stamp label={created.copied ? 'Copied' : 'Ready'} value="302" rotate={-8} land />
 						{:else}
 							<span
 								class="grid h-15.5 w-full rotate-[-8deg] place-items-center rounded-lg border-[2.5px] border-dashed border-border font-mono text-[19px] font-bold text-muted-foreground/60 sm:h-18 sm:text-[26px]"
-								aria-hidden="true">{$formData.permanent ? '301' : '302'}</span
+								aria-hidden="true">302</span
 							>
 						{/if}
 					</div>
@@ -324,39 +318,17 @@
 				<Card.Footer
 					class="grid gap-3 rounded-none border-t bg-secondary/60 px-4 py-4 sm:px-7 sm:py-5 [.border-t]:pt-4 sm:[.border-t]:pt-5"
 				>
-					<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-						<ToggleGroup.Root
-							type="single"
-							aria-label="Link type"
-							class="w-full bg-card sm:w-auto"
-							bind:value={
-								() => ($formData.permanent ? 'permanent' : 'temporary'),
-								(v) => v && ($formData.permanent = v === 'permanent')
-							}
-						>
-							<ToggleGroup.Item value="temporary" class="h-10 flex-1 sm:flex-none"
-								>Temporary</ToggleGroup.Item
-							>
-							<ToggleGroup.Item value="permanent" class="h-10 flex-1 sm:flex-none"
-								>Permanent</ToggleGroup.Item
-							>
-						</ToggleGroup.Root>
+					<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+						<p class="max-w-[60ch] text-sm text-muted-foreground">
+							Links start as temporary 302 redirects. To make one permanent, use
+							<span class="font-medium text-foreground">Make permanent</span> in its menu.
+						</p>
 						<Form.Button
 							size="lg"
 							class="h-12 w-full px-8 text-base sm:w-auto"
 							disabled={$submitting}>{$submitting ? 'Shortening…' : 'Shorten'}</Form.Button
 						>
 					</div>
-					<p
-						class="max-w-[68ch] text-sm {$formData.permanent
-							? 'text-stamp'
-							: 'text-muted-foreground'}"
-						aria-live="polite"
-					>
-						{$formData.permanent
-							? "Redirects with 301. Can't be edited or made temporary later, and browsers cache it, so repeat visits aren't counted."
-							: 'Redirects with 302. You can edit it later, and every click is counted. Leave the short link blank for a random one.'}
-					</p>
 					<FormAlert message={$message} />
 				</Card.Footer>
 			</form>

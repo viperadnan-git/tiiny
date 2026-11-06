@@ -201,9 +201,17 @@ async fn create_evicts_cached_missing() {
 async fn permanent_links() {
     let app = test_app(&[]).await;
     let (s, _) = signed_in(&app, "a@x.com", "user").await;
-    let l: Value = s
-        .post("/api/v1/links")
+    s.post("/api/v1/links")
         .json(&json!({ "url": "https://example.com", "slug": "perm", "permanent": true }))
+        .await
+        .assert_status(StatusCode::UNPROCESSABLE_ENTITY);
+    s.post("/api/v1/links")
+        .json(&json!({ "url": "https://example.com", "slug": "perm" }))
+        .await
+        .assert_status(StatusCode::CREATED);
+    let l: Value = s
+        .patch("/api/v1/links/perm")
+        .json(&json!({ "permanent": true }))
         .await
         .json();
     assert_eq!(l["permanent"], true);
@@ -267,14 +275,6 @@ async fn unverified_user_is_restricted() {
         res.json::<Value>()["error"]["message"],
         "verify your email to choose a slug"
     );
-    let res = s
-        .post("/api/v1/links")
-        .json(&json!({ "url": "https://example.com", "permanent": true }))
-        .await;
-    assert_eq!(
-        res.json::<Value>()["error"]["message"],
-        "verify your email to make a link permanent"
-    );
     let (admin, _) = signed_in(&app, "b@x.com", "admin").await;
     admin
         .post("/api/v1/links")
@@ -294,7 +294,7 @@ async fn verified_user_unaffected() {
     )
     .await;
     s.post("/api/v1/links")
-        .json(&json!({ "url": "https://example.com", "slug": "verified", "permanent": true }))
+        .json(&json!({ "url": "https://example.com", "slug": "verified" }))
         .await
         .assert_status(StatusCode::CREATED);
 }
@@ -451,17 +451,6 @@ async fn guest_custom_slug_and_permanent_forbidden() {
     assert_eq!(
         res.json::<Value>()["error"]["message"],
         "sign in to choose a slug"
-    );
-    let res = guest_post(
-        &app,
-        None,
-        json!({ "url": "https://example.com", "permanent": true }),
-    )
-    .await;
-    assert_eq!(res.status_code(), StatusCode::FORBIDDEN);
-    assert_eq!(
-        res.json::<Value>()["error"]["message"],
-        "sign in to make a link permanent"
     );
 }
 

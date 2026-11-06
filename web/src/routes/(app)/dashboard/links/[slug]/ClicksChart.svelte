@@ -27,14 +27,15 @@
 			: 'No clicks in this range.'
 	);
 	// Band scale: one label centred under its own bar. Wider ranges label every `step`th day, offset so neither edge label overhangs the plot.
-	const step = $derived(Math.ceil(rows.length / 7));
+	let width = $state(0);
+	const step = $derived(Math.ceil(rows.length / (width < 480 ? 4 : 7)));
 	const xTicks = $derived(
 		rows.filter((_, i) => step === 1 || i % step === Math.floor(step / 2)).map((d) => d.date)
 	);
 	const config = { count: { label: 'Clicks', color: 'var(--stamp)' } } satisfies Chart.ChartConfig;
 </script>
 
-<figure class="grid gap-4">
+<figure class="grid gap-4" bind:clientWidth={width}>
 	<figcaption class="text-sm font-semibold">
 		Clicks per day <span class="font-normal text-muted-foreground">(UTC)</span>
 	</figcaption>

@@ -148,7 +148,6 @@ async fn create(
         link_id = created.id,
         slug = created.slug,
         user_id,
-        permanent = created.permanent,
         "link created"
     );
     let mut res = (StatusCode::CREATED, Json(LinkOut::new(&origin, created))).into_response();

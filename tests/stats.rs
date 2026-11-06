@@ -92,7 +92,7 @@ async fn deleted_link_does_not_abort_flush() {
         db,
         &app.state.config,
         &u,
-        new_link(&app.state.config, "https://b.com/", Some("bbb"), false),
+        new_link(&app.state.config, "https://b.com/", Some("bbb")),
     )
     .await
     .unwrap()
@@ -211,7 +211,7 @@ async fn stats_query() {
             id: 1,
             is_admin: false,
         },
-        new_link(&app.state.config, "https://f.com/", Some("fresh"), false),
+        new_link(&app.state.config, "https://f.com/", Some("fresh")),
     )
     .await
     .unwrap();
@@ -246,7 +246,7 @@ async fn referrers_capped_per_link_day() {
         db,
         &app.state.config,
         &u,
-        new_link(&app.state.config, "https://b.com/", Some("bbb"), false),
+        new_link(&app.state.config, "https://b.com/", Some("bbb")),
     )
     .await
     .unwrap()

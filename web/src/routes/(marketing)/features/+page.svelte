@@ -23,7 +23,7 @@
 			title: 'Temporary or permanent',
 			lead: 'Pick how a link behaves once it’s out in the world.',
 			points: [
-				'Temporary links redirect with 302. Change the destination or the slug at any time, and every click counts.',
+				'Links start temporary and redirect with 302. Change the destination or the slug at any time, and every click counts.',
 				'Permanent links redirect with 301, so browsers cache them for a day. They can’t be edited or made temporary again.',
 				'Deleting a permanent link retires its slug forever; the address answers “gone” instead of pointing somewhere new.'
 			]

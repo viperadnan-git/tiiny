@@ -8,7 +8,7 @@ export const faqs = [
 	},
 	{
 		q: 'What’s the difference between temporary and permanent links?',
-		a: 'Temporary links redirect with 302: you can change the destination or the slug, and every click is counted. Permanent links redirect with 301, so browsers may cache them. They can’t be edited, repeat visits from the same browser aren’t counted, and deleting one retires its slug for good.'
+		a: 'Temporary links redirect with 302: you can change the destination or the slug, and every click is counted. Every link starts temporary; make it permanent from its menu. Permanent links redirect with 301, so browsers may cache them. They can’t be edited, repeat visits from the same browser aren’t counted, and deleting one retires its slug for good.'
 	},
 	{
 		q: 'Can I choose the short name?',

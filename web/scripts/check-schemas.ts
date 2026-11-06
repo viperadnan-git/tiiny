@@ -234,13 +234,13 @@ for (const [u, msg] of [
 const slugMsg = "slug must be 3-64 characters of letters, digits, '-' or '_'";
 ok(
 	'form url trimmed',
-	parsed(createLinkFormSchema, { url: '  https://x.com  ', slug: '', permanent: false }).data
-		?.url === 'https://x.com',
+	parsed(createLinkFormSchema, { url: '  https://x.com  ', slug: '' }).data?.url ===
+		'https://x.com',
 	'trim'
 );
 ok(
 	'form url needs scheme',
-	firstError(createLinkFormSchema, { url: 'example.com', slug: '', permanent: false }, 'url') ===
+	firstError(createLinkFormSchema, { url: 'example.com', slug: '' }, 'url') ===
 		'url must start with http:// or https://',
 	'example.com'
 );
@@ -275,24 +275,24 @@ ok(
 	'form slug from link',
 	parsed(createLinkFormSchema, {
 		url: 'https://x.com',
-		slug: 'https://t.test/abc',
-		permanent: false
+		slug: 'https://t.test/abc'
 	}).data?.slug === 'abc',
 	'link'
 );
 ok(
+	'create rejects permanent',
+	!createLinkFormSchema.safeParse({ url: 'https://x.com', slug: '', permanent: true }).success,
+	'permanent'
+);
+ok(
 	'form slug blank',
-	parsed(createLinkFormSchema, { url: 'https://x.com', slug: '', permanent: false }).data?.slug ===
-		undefined,
+	parsed(createLinkFormSchema, { url: 'https://x.com', slug: '' }).data?.slug === undefined,
 	'blank'
 );
 ok(
 	'form slug other link',
-	firstError(
-		createLinkFormSchema,
-		{ url: 'https://x.com', slug: 'https://o.test/abc', permanent: false },
-		'slug'
-	) === 'enter a slug or a link on this site',
+	firstError(createLinkFormSchema, { url: 'https://x.com', slug: 'https://o.test/abc' }, 'slug') ===
+		'enter a slug or a link on this site',
 	'other'
 );
 ok(

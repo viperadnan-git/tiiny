@@ -99,7 +99,6 @@ async fn insert_link(
     owner: &Owner,
     url: &url::Url,
     slug: Option<&str>,
-    permanent: bool,
     limit: Option<DailyCap>,
 ) -> Result<Option<Link>, AppError> {
     // Only a daily limit needs a transaction (counter atomic with the insert); else the insert autocommits.
@@ -140,20 +139,13 @@ async fn insert_link(
             .unwrap_or(conn)
             .query(
                 &format!(
-                    "INSERT INTO links (user_id, guest_key_hash, slug, url, permanent_at, created_at, updated_at)
-                     SELECT ?1, ?6, ?2, ?3, ?5, ?4, ?4
+                    "INSERT INTO links (user_id, guest_key_hash, slug, url, created_at, updated_at)
+                     SELECT ?1, ?5, ?2, ?3, ?4, ?4
                      WHERE NOT EXISTS (SELECT 1 FROM retired_slugs WHERE slug = ?2)
                        AND NOT EXISTS (SELECT 1 FROM links WHERE slug = ?2)
                      RETURNING {COLS}"
                 ),
-                libsql::params![
-                    uid,
-                    s.as_str(),
-                    url.as_str(),
-                    now,
-                    permanent.then_some(now),
-                    guest
-                ],
+                libsql::params![uid, s.as_str(), url.as_str(), now, guest],
             )
             .await?;
         let Some(link) = rows.next().await?.as_ref().map(from_row).transpose()? else {
@@ -180,9 +172,6 @@ pub struct NewLink {
     pub url: String,
     #[garde(inner(custom(custom_slug)))]
     pub slug: Option<String>,
-    #[serde(default)]
-    #[garde(skip)]
-    pub permanent: bool,
 }
 
 /// `PATCH /links/{slug}` body; only a `Valid<LinkEdit>` reaches [`update_link`].
@@ -216,7 +205,7 @@ pub async fn create_link(
     create_owned(db, &Owner::User(user.id), link, false, limit).await
 }
 
-/// `restricted` (guests, unverified users): random slug, temporary only.
+/// `restricted` (guests, unverified users): random slug. New links are always temporary.
 pub async fn create_owned(
     db: &Db,
     owner: &Owner,
@@ -224,33 +213,17 @@ pub async fn create_owned(
     restricted: bool,
     limit: Option<DailyCap>,
 ) -> Result<Link, AppError> {
-    let NewLink {
-        url,
-        slug,
-        permanent,
-    } = link.into_inner();
-    if restricted {
-        let (choose, perm) = match owner {
-            Owner::Guest(_) => (
-                "sign in to choose a slug",
-                "sign in to make a link permanent",
-            ),
-            Owner::User(_) => (
-                "verify your email to choose a slug",
-                "verify your email to make a link permanent",
-            ),
-        };
-        if slug.is_some() {
-            return Err(AppError::Forbidden(choose.into()));
-        }
-        if permanent {
-            return Err(AppError::Forbidden(perm.into()));
-        }
+    let NewLink { url, slug } = link.into_inner();
+    if restricted && slug.is_some() {
+        return Err(AppError::Forbidden(match owner {
+            Owner::Guest(_) => "sign in to choose a slug".into(),
+            Owner::User(_) => "verify your email to choose a slug".into(),
+        }));
     }
     let (url, slug) = (canonical(&url), slug.as_deref());
     let conn = db.conn().await?;
     match (
-        insert_link(conn.writer(), owner, &url, slug, permanent, limit).await?,
+        insert_link(conn.writer(), owner, &url, slug, limit).await?,
         slug,
     ) {
         (Some(link), _) => Ok(link),

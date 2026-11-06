@@ -102,20 +102,23 @@ pub async fn insert_user(db: &Db, email: &str, role: &str) -> i64 {
     w.last_insert_rowid()
 }
 
-/// A link for a non-admin user, created as `POST /links` creates it.
+/// A link for a non-admin user, created as `POST /links` creates it; `permanent` then patches it as `PATCH /links/{slug}` does.
 pub async fn add_link(app: &TestApp, uid: i64, slug: &str, url: &str, permanent: bool) -> Link {
-    let cfg = &app.state.config;
-    create_link(
-        &app.state.db,
-        cfg,
-        &UserRef {
-            id: uid,
-            is_admin: false,
-        },
-        new_link(cfg, url, Some(slug), permanent),
-    )
-    .await
-    .unwrap()
+    let (db, cfg) = (&app.state.db, &app.state.config);
+    let user = UserRef {
+        id: uid,
+        is_admin: false,
+    };
+    let link = create_link(db, cfg, &user, new_link(cfg, url, Some(slug)))
+        .await
+        .unwrap();
+    if !permanent {
+        return link;
+    }
+    tiiny::links::model::update_link(db, link.id, link_edit(cfg, None, None, Some(true)))
+        .await
+        .unwrap()
+        .0
 }
 
 /// A [`test_app`] whose client keeps cookies across requests.
@@ -186,16 +189,10 @@ pub async fn signed_in(app: &TestApp, email: &str, role: &str) -> (axum_test::Te
 }
 
 /// A link body validated exactly as `POST /links` validates it.
-pub fn new_link(
-    cfg: &Arc<Config>,
-    url: &str,
-    slug: Option<&str>,
-    permanent: bool,
-) -> Valid<NewLink> {
+pub fn new_link(cfg: &Arc<Config>, url: &str, slug: Option<&str>) -> Valid<NewLink> {
     Unvalidated::new(NewLink {
         url: url.into(),
         slug: slug.map(Into::into),
-        permanent,
     })
     .validate_with(cfg)
     .unwrap()

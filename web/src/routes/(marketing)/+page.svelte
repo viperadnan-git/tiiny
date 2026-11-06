@@ -261,7 +261,7 @@
 					{#if created}
 						{#key created.link.id}<Stamp
 								label={created.copied ? 'Copied' : 'Created'}
-								value={created.link.permanent ? '301' : '302'}
+								value="302"
 								rotate={-8}
 								land
 							/>{/key}

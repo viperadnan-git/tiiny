@@ -157,8 +157,7 @@ export const changePasswordSchema = z.strictObject({
 });
 export const createLinkSchema = z.strictObject({
 	url,
-	slug: slug.optional(),
-	permanent: z.boolean().optional()
+	slug: slug.optional()
 });
 export const updateLinkSchema = z.strictObject({
 	url: url.optional(),

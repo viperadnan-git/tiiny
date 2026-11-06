@@ -24,7 +24,7 @@ async fn create_and_conflict() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("my-slug"), false),
+        new_link(cfg, "https://example.com", Some("my-slug")),
     )
     .await
     .unwrap();
@@ -37,18 +37,13 @@ async fn create_and_conflict() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("my-slug"), false),
+        new_link(cfg, "https://example.com", Some("my-slug")),
     )
     .await;
     assert!(matches!(dup, Err(AppError::Conflict(_))));
-    let r = create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await
-    .unwrap();
+    let r = create_link(db, cfg, &u, new_link(cfg, "https://example.com", None))
+        .await
+        .unwrap();
     assert_eq!(r.slug.len(), 7);
 }
 
@@ -58,36 +53,20 @@ async fn daily_limit() {
     let (db, cfg) = (&app.state.db, &app.state.config);
     let u = user(insert_user(db, "a@x.com", "user").await);
     for _ in 0..2 {
-        create_link(
-            db,
-            cfg,
-            &u,
-            new_link(cfg, "https://example.com", None, false),
-        )
-        .await
-        .unwrap();
+        create_link(db, cfg, &u, new_link(cfg, "https://example.com", None))
+            .await
+            .unwrap();
     }
-    let third = create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await;
+    let third = create_link(db, cfg, &u, new_link(cfg, "https://example.com", None)).await;
     assert!(matches!(third, Err(AppError::TooManyRequests(_))));
     let admin = UserRef {
         id: insert_user(db, "b@x.com", "admin").await,
         is_admin: true,
     };
     for _ in 0..3 {
-        create_link(
-            db,
-            cfg,
-            &admin,
-            new_link(cfg, "https://example.com", None, false),
-        )
-        .await
-        .unwrap();
+        create_link(db, cfg, &admin, new_link(cfg, "https://example.com", None))
+            .await
+            .unwrap();
     }
 }
 
@@ -100,18 +79,12 @@ async fn deleting_does_not_refund_daily_limit() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("taken"), false),
+        new_link(cfg, "https://example.com", Some("taken")),
     )
     .await
     .unwrap();
     delete_link(db, taken.id).await.unwrap();
-    let again = create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await;
+    let again = create_link(db, cfg, &u, new_link(cfg, "https://example.com", None)).await;
     assert!(matches!(again, Err(AppError::TooManyRequests(_))));
 }
 
@@ -125,7 +98,7 @@ async fn failed_create_does_not_use_daily_limit() {
         db,
         cfg,
         &a,
-        new_link(cfg, "https://example.com", Some("dup"), false),
+        new_link(cfg, "https://example.com", Some("dup")),
     )
     .await
     .unwrap();
@@ -133,18 +106,13 @@ async fn failed_create_does_not_use_daily_limit() {
         db,
         cfg,
         &b,
-        new_link(cfg, "https://example.com", Some("dup"), false),
+        new_link(cfg, "https://example.com", Some("dup")),
     )
     .await;
     assert!(matches!(dup, Err(AppError::Conflict(_))));
-    create_link(
-        db,
-        cfg,
-        &b,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await
-    .unwrap();
+    create_link(db, cfg, &b, new_link(cfg, "https://example.com", None))
+        .await
+        .unwrap();
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -152,28 +120,18 @@ async fn yesterday_does_not_count() {
     let app = test_app(&[("TIINY_MAX_LINKS_PER_USER_PER_DAY", "1")]).await;
     let (db, cfg) = (&app.state.db, &app.state.config);
     let u = user(insert_user(db, "a@x.com", "user").await);
-    let l = create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await
-    .unwrap();
+    let l = create_link(db, cfg, &u, new_link(cfg, "https://example.com", None))
+        .await
+        .unwrap();
     common::exec(
         db,
         "UPDATE link_quota SET epoch_day = epoch_day - 1 WHERE owner = 'u:' || ?1",
         [l.user_id],
     )
     .await;
-    create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://example.com", None, false),
-    )
-    .await
-    .unwrap();
+    create_link(db, cfg, &u, new_link(cfg, "https://example.com", None))
+        .await
+        .unwrap();
 }
 
 #[tokio::test(flavor = "multi_thread")]
@@ -186,7 +144,7 @@ async fn listing() {
         db,
         cfg,
         &user(a),
-        new_link(cfg, "https://one.com", Some("first"), false),
+        new_link(cfg, "https://one.com", Some("first")),
     )
     .await
     .unwrap();
@@ -194,7 +152,7 @@ async fn listing() {
         db,
         cfg,
         &user(a),
-        new_link(cfg, "https://two.com", Some("second"), false),
+        new_link(cfg, "https://two.com", Some("second")),
     )
     .await
     .unwrap();
@@ -202,7 +160,7 @@ async fn listing() {
         db,
         cfg,
         &user(b),
-        new_link(cfg, "https://three.com", Some("third"), false),
+        new_link(cfg, "https://three.com", Some("third")),
     )
     .await
     .unwrap();
@@ -258,7 +216,7 @@ async fn update_and_delete() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("old-slug"), false),
+        new_link(cfg, "https://example.com", Some("old-slug")),
     )
     .await
     .unwrap();
@@ -266,7 +224,7 @@ async fn update_and_delete() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("taken"), false),
+        new_link(cfg, "https://example.com", Some("taken")),
     )
     .await
     .unwrap();
@@ -311,7 +269,7 @@ async fn query_wildcards_are_literal() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://a.com/100%25", Some("pct"), false),
+        new_link(cfg, "https://a.com/100%25", Some("pct")),
     )
     .await
     .unwrap();
@@ -319,26 +277,16 @@ async fn query_wildcards_are_literal() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://a.com/1000", Some("zero"), false),
+        new_link(cfg, "https://a.com/1000", Some("zero")),
     )
     .await
     .unwrap();
-    let us = create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://b.com", Some("a_b"), false),
-    )
-    .await
-    .unwrap();
-    create_link(
-        db,
-        cfg,
-        &u,
-        new_link(cfg, "https://b.com", Some("axb"), false),
-    )
-    .await
-    .unwrap();
+    let us = create_link(db, cfg, &u, new_link(cfg, "https://b.com", Some("a_b")))
+        .await
+        .unwrap();
+    create_link(db, cfg, &u, new_link(cfg, "https://b.com", Some("axb")))
+        .await
+        .unwrap();
     let ids = |v: Vec<tiiny::links::model::Link>| v.into_iter().map(|l| l.id).collect::<Vec<_>>();
     assert_eq!(
         ids(list_links(db, LinkScope::All, Some("100%"), None, 10)
@@ -359,14 +307,18 @@ async fn permanent_links() {
     let app = test_app(&[]).await;
     let (db, cfg) = (&app.state.db, &app.state.config);
     let u = user(insert_user(db, "a@x.com", "user").await);
-    let p = create_link(
+    let t = create_link(
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("perm"), true),
+        new_link(cfg, "https://example.com", Some("perm")),
     )
     .await
     .unwrap();
+    assert!(!t.permanent, "new links start temporary");
+    let (p, _) = update_link(db, t.id, link_edit(cfg, None, None, Some(true)))
+        .await
+        .unwrap();
     assert!(p.permanent);
     for (url, slug) in [(Some("https://o.com"), None), (None, Some("other"))] {
         assert!(matches!(
@@ -399,7 +351,7 @@ async fn permanent_links() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("temp"), false),
+        new_link(cfg, "https://example.com", Some("temp")),
     )
     .await
     .unwrap();
@@ -442,7 +394,7 @@ async fn permanent_links() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("perm"), false),
+        new_link(cfg, "https://example.com", Some("perm")),
     )
     .await;
     assert!(matches!(c, Err(AppError::Conflict(m)) if m == "slug is already taken. Try another"));
@@ -450,7 +402,7 @@ async fn permanent_links() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("xyz"), false),
+        new_link(cfg, "https://example.com", Some("xyz")),
     )
     .await
     .unwrap();
@@ -468,7 +420,7 @@ async fn permanent_links() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("tmp1"), false),
+        new_link(cfg, "https://example.com", Some("tmp1")),
     )
     .await
     .unwrap();
@@ -478,7 +430,7 @@ async fn permanent_links() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("tmp1"), false),
+        new_link(cfg, "https://example.com", Some("tmp1")),
     )
     .await
     .unwrap();
@@ -500,19 +452,14 @@ async fn create_never_returns_retired_slug() {
         db,
         cfg,
         &u,
-        new_link(cfg, "https://example.com", Some("retired"), false),
+        new_link(cfg, "https://example.com", Some("retired")),
     )
     .await;
     assert!(matches!(c, Err(AppError::Conflict(m)) if m == "slug is already taken. Try another"));
     for _ in 0..50 {
-        let l = create_link(
-            db,
-            cfg,
-            &u,
-            new_link(cfg, "https://example.com", None, false),
-        )
-        .await
-        .unwrap();
+        let l = create_link(db, cfg, &u, new_link(cfg, "https://example.com", None))
+            .await
+            .unwrap();
         assert_ne!(l.slug, "retired");
     }
 }
@@ -566,13 +513,15 @@ async fn update_link_refusals_name_the_reason() {
     let app = test_app(&[]).await;
     let (db, cfg) = (&app.state.db, &app.state.config);
     let u = user(insert_user(db, "a@x.com", "user").await);
-    let link = |slug: &'static str, permanent| {
-        create_link(
-            db,
-            cfg,
-            &u,
-            new_link(cfg, "https://example.com", Some(slug), permanent),
-        )
+    let u = &u;
+    let link = |slug: &'static str, permanent: bool| async move {
+        let l = create_link(db, cfg, u, new_link(cfg, "https://example.com", Some(slug))).await?;
+        if !permanent {
+            return Ok(l);
+        }
+        update_link(db, l.id, link_edit(cfg, None, None, Some(true)))
+            .await
+            .map(|(l, _)| l)
     };
     let p = link("perm", true).await.unwrap();
     let t = link("temp", false).await.unwrap();
