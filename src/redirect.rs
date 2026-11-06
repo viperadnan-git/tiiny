@@ -1,6 +1,6 @@
 use axum::{
     extract::State,
-    http::{HeaderMap, HeaderValue, StatusCode, Uri, header},
+    http::{HeaderMap, HeaderValue, Method, StatusCode, Uri, header},
     response::{IntoResponse, Response},
 };
 
@@ -8,6 +8,7 @@ use crate::{AppState, ClientAddr, cache::CachedSlug, links::slug::is_well_formed
 
 pub async fn redirect(
     State(state): State<AppState>,
+    method: Method,
     uri: Uri,
     headers: HeaderMap,
     ClientAddr(ip): ClientAddr,
@@ -29,7 +30,10 @@ pub async fn redirect(
             url,
             permanent,
         }) => {
-            state.stats.record(link_id, &headers, ip);
+            // Link checkers and monitors send HEAD; only a GET is a visit.
+            if method == Method::GET {
+                state.stats.record(link_id, &headers, ip);
+            }
             // A day, browsers only: blocking, deleting or disabling the owner must reach earlier visitors.
             let (status, cache) = if permanent {
                 (StatusCode::MOVED_PERMANENTLY, "private, max-age=86400")

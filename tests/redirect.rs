@@ -183,3 +183,22 @@ async fn plus_previews_without_redirecting_or_counting() {
         app.server.get(p).await.assert_status(StatusCode::NOT_FOUND);
     }
 }
+
+#[tokio::test(flavor = "multi_thread")]
+async fn head_redirects_without_counting() {
+    let app = test_app(&[]).await;
+    let uid = insert_user(&app.state.db, "a@x.com", "user").await;
+    let l = add_link(&app, uid, "head", "https://example.com/h", false).await;
+    let r = app.server.method(axum::http::Method::HEAD, "/head").await;
+    r.assert_status(axum::http::StatusCode::FOUND);
+    assert_eq!(r.header("location"), "https://example.com/h");
+    app.server.get("/head").await;
+    app.state.stats.flush(&app.state.db).await.unwrap();
+    let clicks = common::scalar(
+        &app.state.db,
+        "SELECT click_count FROM links WHERE id = ?1",
+        [l.id],
+    )
+    .await;
+    assert_eq!(clicks, 1, "only the GET counts");
+}
