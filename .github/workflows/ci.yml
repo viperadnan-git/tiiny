@@ -149,7 +149,8 @@ jobs:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ vars.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
-          short-description: ${{ github.event.repository.description }}
+          # Docker Hub caps this at 100 characters.
+          short-description: Self-hosted link shortener that counts clicks, not people.
           readme-filepath: README.md
           # Relative links and images point at GitHub.
           enable-url-completion: true
