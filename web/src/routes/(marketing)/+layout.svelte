@@ -1,5 +1,5 @@
 <script lang="ts">
-	import SiteFooter from './SiteFooter.svelte';
+	import SiteFooter from '#lib/components/SiteFooter.svelte';
 	import SiteHeader from './SiteHeader.svelte';
 
 	let { children } = $props();

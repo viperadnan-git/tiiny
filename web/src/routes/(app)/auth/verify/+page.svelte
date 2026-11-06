@@ -21,18 +21,19 @@
 		done: 'Email verified',
 		already: 'Already verified',
 		wrong: 'This link can’t be used',
+		off: 'This link can’t be used',
 		failed: 'Verify your email'
 	};
 
 	const token = page.url.searchParams.get('token') ?? '';
 	// svelte-ignore state_referenced_locally
-	let status = $state<'working' | 'done' | 'already' | 'wrong' | 'failed'>(
+	let status = $state<'working' | 'done' | 'already' | 'wrong' | 'off' | 'failed'>(
 		data.me?.email_verified ? 'already' : 'working'
 	);
 	let error = $state('');
 
-	onMount(async () => {
-		if (status === 'already') return;
+	async function verify() {
+		status = 'working';
 		const body = verifySchema.safeParse({ token });
 		if (!body.success) {
 			status = 'wrong';
@@ -50,11 +51,17 @@
 				status = 'already';
 			} else if (e instanceof ApiError && e.status === 400) {
 				status = 'wrong';
+			} else if (e instanceof ApiError && e.status === 404) {
+				status = 'off';
 			} else {
 				status = 'failed';
 				error = errorMessage(e);
 			}
 		}
+	}
+
+	onMount(() => {
+		if (status !== 'already') void verify();
 	});
 </script>
 
@@ -68,8 +75,8 @@
 			{ text: data.me?.email ?? '', placeholder: 'you@example.com' }
 		]}
 		to={[{ text: 'Verified address', strong: true }, { text: shortHost }]}
-		valid={status === 'done' || status === 'already' || status === 'wrong'}
-		mark={status === 'wrong'
+		valid={status === 'done' || status === 'already' || status === 'wrong' || status === 'off'}
+		mark={status === 'wrong' || status === 'off'
 			? { label: 'Return to', value: 'sender' }
 			: status === 'already'
 				? { label: 'Already', value: 'verified' }
@@ -104,18 +111,23 @@
 		</p>
 		<Button href="/dashboard" class="justify-self-start">Go to your links</Button>
 	{:else if status === 'wrong'}
-		<Alert.Root variant="destructive" role="alert">
-			<Alert.Description>
-				This link has expired, was already used, or belongs to a different account. Sign in to the
-				right account, or send a new link from your dashboard.
-			</Alert.Description>
-		</Alert.Root>
-		<Button href="/dashboard" variant="secondary" class="justify-self-start"
-			>Go to your links</Button
-		>
+		<div class="grid gap-2" role="alert">
+			<p>This link has expired, was already used, or belongs to a different account.</p>
+			<p class="text-muted-foreground">
+				Sign in to the right account, or send a new link from your dashboard.
+			</p>
+		</div>
+		<Button href="/dashboard" class="justify-self-start">Go to your links</Button>
+	{:else if status === 'off'}
+		<div class="grid gap-2" role="alert">
+			<p>This server no longer sends email, so verification links don’t work.</p>
+			<p class="text-muted-foreground">Your account works without verifying.</p>
+		</div>
+		<Button href="/dashboard" class="justify-self-start">Go to your links</Button>
 	{:else}
 		<Alert.Root variant="destructive" role="alert"
 			><Alert.Description>{error}</Alert.Description></Alert.Root
 		>
+		<Button onclick={verify} class="justify-self-start">Try again</Button>
 	{/if}
 </AuthShell>

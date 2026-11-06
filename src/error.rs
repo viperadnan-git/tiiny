@@ -35,7 +35,7 @@ pub enum AppError {
     RateLimited { retry_after: u64 },
     #[error("request body too large")]
     PayloadTooLarge,
-    #[error("something went wrong on the server. Try again")]
+    #[error("something went wrong on our side. Try again in a moment")]
     Internal(anyhow::Error),
 }
 

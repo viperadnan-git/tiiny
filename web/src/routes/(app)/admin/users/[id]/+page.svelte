@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { Separator } from '#lib/components/ui/separator/index.js';
 	import RelativeTime from '#lib/components/RelativeTime.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
@@ -89,7 +90,7 @@
 		</Breadcrumb.List>
 	</Breadcrumb.Root>
 
-	<header class="grid gap-5 border-b pb-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+	<header class="grid gap-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
 		<div class="flex min-w-0 items-start gap-4 sm:gap-5">
 			<UserAvatar
 				email={u.email}
@@ -135,6 +136,7 @@
 				</Skeleton>
 			{/if}
 		</div>
+		<Separator class="md:col-span-2" />
 	</header>
 
 	<FormAlert message={error} />

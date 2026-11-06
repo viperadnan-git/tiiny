@@ -3,7 +3,6 @@
 	import { invalidate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { api, ApiError } from '#lib/api-client.ts';
-	import * as Alert from '#lib/components/ui/alert/index.js';
 	import FormAlert from '#lib/components/FormAlert.svelte';
 	import { Button } from '#lib/components/ui/button/index.js';
 	import * as Form from '#lib/components/ui/form/index.js';
@@ -16,8 +15,10 @@
 	const token = page.url.searchParams.get('token') ?? '';
 	const tokenOk = verifySchema.safeParse({ token }).success;
 	let done = $state(false);
-	// The server's only 400 here: the token is unknown, used or expired.
+	// 400: the token is unknown, used or expired. 404: this server no longer sends email.
 	let spent = $state(false);
+	let mailOff = $state(false);
+	const unusable = $derived(!tokenOk || spent || mailOff);
 
 	const form = spaForm(
 		resetFormSchema,
@@ -26,8 +27,9 @@
 			try {
 				await api('POST', '/auth/reset-password', { token, password });
 			} catch (e) {
-				if (e instanceof ApiError && e.status === 400) {
-					spent = true;
+				if (e instanceof ApiError && (e.status === 400 || e.status === 404)) {
+					if (e.status === 400) spent = true;
+					else mailOff = true;
 					return;
 				}
 				throw e;
@@ -37,7 +39,7 @@
 		}
 	);
 	const { form: formData, enhance, message, submitting } = form;
-	const valid = $derived(done || spent || resetFormSchema.safeParse($formData).success);
+	const valid = $derived(done || unusable || resetFormSchema.safeParse($formData).success);
 	const today = shortToday();
 </script>
 
@@ -52,7 +54,7 @@
 		]}
 		to={[{ text: 'Your account', strong: true }, { text: 'Sign in again after this' }]}
 		{valid}
-		mark={spent ? { label: 'Return to', value: 'sender' } : { label: 'Sealed', value: today }}
+		mark={unusable ? { label: 'Return to', value: 'sender' } : { label: 'Sealed', value: today }}
 		facts={[
 			`Use at least ${passwordMin} characters. A few unrelated words are easy to remember and hard to guess.`,
 			'Saving it signs you out on every device.',
@@ -62,24 +64,32 @@
 {/snippet}
 
 <AuthShell
-	title={done ? 'Password updated' : spent ? 'This link can’t be used' : 'Choose a new password'}
-	intro={done || spent || !tokenOk ? undefined : 'Pick something you don’t use anywhere else.'}
-	label={tokenOk ? sealed : undefined}
+	title={done ? 'Password updated' : unusable ? 'This link can’t be used' : 'Choose a new password'}
+	intro={done || unusable ? undefined : 'Pick something you don’t use anywhere else.'}
+	label={sealed}
 >
-	{#if !tokenOk}
-		<Alert.Root variant="destructive"
-			><Alert.Description
-				>This reset link is incomplete or damaged. Open the link from your email again.</Alert.Description
-			></Alert.Root
-		>
-	{:else if spent}
-		<Alert.Root variant="destructive" role="alert">
-			<Alert.Description>
-				This reset link has expired or was already used. Your password hasn't changed. Each link
-				works once, within an hour, and only the newest one works.
-			</Alert.Description>
-		</Alert.Root>
-		<Button href="/auth/forgot" class="justify-self-start">Send a new link</Button>
+	{#if unusable}
+		<div class="grid gap-2" role="alert">
+			<p>
+				{mailOff
+					? 'This server no longer sends email, so reset links don’t work.'
+					: spent
+						? 'This reset link has expired or was already used.'
+						: 'This reset link is incomplete.'} Your password hasn’t changed.
+			</p>
+			<p class="text-muted-foreground">
+				{mailOff
+					? 'Ask whoever runs this server to reset it for you.'
+					: spent
+						? 'Each link works once, within an hour, and only the newest one works.'
+						: 'Open the whole link from your email, or send a new one.'}
+			</p>
+		</div>
+		{#if mailOff}
+			<Button href="/login" class="justify-self-start">Sign in</Button>
+		{:else}
+			<Button href="/auth/forgot" class="justify-self-start">Send a new link</Button>
+		{/if}
 	{:else if done}
 		<div class="grid gap-2" role="status">
 			<p>

@@ -57,6 +57,10 @@ export const sentence = (msg: string) =>
 
 export function errorMessage(e: unknown): string {
 	if (!(e instanceof ApiError)) return 'Couldn’t reach tiiny. Check your connection and try again.';
+	if (e.code === 'not_found') return 'That’s no longer here. Refresh the page to see what changed.';
+	// A proxy's error page (502, 503) instead of tiiny's JSON.
+	if (e.status >= 500 && e.code.startsWith('http_'))
+		return 'tiiny isn’t responding right now. Try again in a moment.';
 	return sentence(e.message);
 }
 

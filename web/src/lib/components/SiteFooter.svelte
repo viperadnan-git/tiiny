@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { readmeUrl, repoUrl, version } from '#lib/site.ts';
+	import { Separator } from '#lib/components/ui/separator/index.js';
 
 	const links = [
 		{ href: '/features', label: 'Features' },
@@ -11,8 +12,9 @@
 	];
 </script>
 
-<footer class="overflow-hidden border-t border-foreground pt-12">
-	<div class="wrap">
+<footer class="overflow-hidden">
+	<Separator />
+	<div class="wrap pt-12">
 		<div class="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
 			<p class="max-w-[22ch] font-serif text-[clamp(26px,3vw,34px)] leading-[1.15]">
 				Short links you keep, on a server you run.
@@ -31,7 +33,7 @@
 			</nav>
 		</div>
 		<!-- Oversized wordmark cropped by the page edge. -->
-		<div class="mt-12 border-t"></div>
+		<Separator class="mt-12" />
 		<div class="flex items-end justify-between">
 			<span
 				aria-hidden="true"
